@@ -10,6 +10,7 @@ module.exports = {
         poppinsBold: 'PoppinsBold',
         poppinsRegular: 'PoppinsRegular',
         poppinsMedium: 'PoppinsMedium',
+        poppins: 'Poppins',
       },
     },
   },
