@@ -2,19 +2,21 @@ import {auth, db} from "../utils/firebase";
 import {useAuthState} from "react-firebase-hooks/auth";
 import {useRouter} from "next/router";
 import {useEffect, useState} from "react";
-import {collection, onSnapshot, query, where} from "firebase/firestore";
+import {collection, onSnapshot, query, where, doc, deleteDoc} from "firebase/firestore";
 import Message from "../components/Message";
 import {BsFillTrashFill} from 'react-icons/bs'
 import {AiFillEdit} from 'react-icons/ai'
+import Link from "next/link";
 
 export default function Dashboard() {
-    const rout = useRouter()
     const [user, loading] = useAuthState(auth)
     const [posts, setPosts] = useState([])
+    const route = useRouter()
+
     //See if user logged
     const getData = async () => {
         if (loading) return
-        if (!user) return rout.push('/auth/login')
+        if (!user) return route.push('/auth/login')
         const collectionRef = collection(db, 'posts')
         const q = query(collectionRef, where('user', '==', user.uid))
         const unsubscribe = onSnapshot(q, (snapshot => {
@@ -22,10 +24,17 @@ export default function Dashboard() {
         }))
         return unsubscribe
     }
+    //delete post
+    const deletePost = async(id)=> {
+        const docRef = doc(db, 'posts', id)
+        await deleteDoc(docRef)
+    }
     //get users data
     useEffect(() => {
         getData()
     }, [user, loading])
+
+
 
     return (
         <div>
@@ -34,8 +43,11 @@ export default function Dashboard() {
                 {posts.map(post => (
                     <Message {...post} key={post.id}>
                         <div className={'flex gap-4'}>
-                            <button className={'text-pink-600 flex items-center justify-center gap-2 py-2 text-sm'}><BsFillTrashFill className={'text-xl'}/>Delete</button>
-                            <button className={'text-teal-600 flex items-center justify-center gap-2 py-2 text-sm'}><AiFillEdit className={'text-xl'}/>Edit</button>
+                            <button onClick={()=>deletePost(post.id)} className={'text-pink-600 flex items-center justify-center gap-2 py-2 text-sm'}><BsFillTrashFill className={'text-xl'}/>Delete</button>
+                            <Link href={{pathname: '/post', query: post}}>
+                                <button className={'text-teal-600 flex items-center justify-center gap-2 py-2 text-sm'}><AiFillEdit className={'text-xl'}/>Edit</button>
+
+                            </Link>
                         </div>
                     </Message>
                 ))}
